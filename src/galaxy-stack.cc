@@ -1,7 +1,10 @@
-/**
- * Copyright (c) 2013 Bruno Jouhier <bruno.jouhier@sage.com>
- * MIT License
- */
+//
+// Copyright (c) 2013 Bruno Jouhier <bruno.jouhier@sage.com>
+// MIT License
+//
+// Most of the code borrowed from v8's src/isolate.cc, hence the following copyright notice
+// Copyright 2012 the V8 project authors. All rights reserved.
+
 #define ENABLE_DEBUGGER_SUPPORT
 #include "api.h"
 #include "objects.h"
@@ -103,7 +106,6 @@ Local<Value> internalGetStackFrame(Handle<Value> handle) {
   i::JSObject::SetLocalPropertyIgnoreAttributes(stack_frame, line_key, i::Handle<i::Smi>(i::Smi::FromInt(line_number + 1), isolate), NONE); 
   i::JSObject::SetLocalPropertyIgnoreAttributes(stack_frame, column_key, i::Handle<i::Smi>(i::Smi::FromInt(column_offset + 1), isolate), NONE);
   i::JSObject::SetLocalPropertyIgnoreAttributes(stack_frame, function_key, fun_name, NONE);
-  //printf("script name: %s\n", *v8::String::Utf8Value(script_name->toString());
   return Utils::ToLocal(stack_frame); 
 }
 
