@@ -24,10 +24,15 @@ equal(frame.scriptName, __filename, 'scriptName');
 equal(frame.functionName, 'testGenerator', 'functionName');
 equal(frame.lineNumber, 5, 'lineNumber');
 equal(frame.column, 2, 'column');
+var savedContinuation = gs.getContinuation(gen);
 
 val = gen.next().value;
 frame = gs.getStackFrame(gen);
 equal(val, 2, 'next val');
 equal(frame.lineNumber, 6, 'lineNumber');
-equal(passed, 8, 'test count');
+
+frame = gs.getStackFrame(gen, savedContinuation);
+equal(frame.lineNumber, 5, 'lineNumber');
+equal(passed, 9, 'test count');
+
 console.log(passed + " TESTS PASSED!")

@@ -69,7 +69,7 @@ static inline bool IsExecutionTerminatingCheck(i::Isolate* isolate) {
 
 // Got this the API boilerplate from v8::Object::GetPrototype() 
 // and the details from Isolate::CaptureCurrentStackTrace
-Local<Value> internalGetStackFrame(Handle<Value> handle) {
+Local<Value> internalGetStackFrame(Handle<Value> handle, int continuation) {
   i::Isolate* isolate = i::Isolate::Current();
   ON_BAILOUT(isolate, "Galaxy_stack::GetStackFrame()", return Local<v8::Value>());
   ENTER_V8(isolate);
@@ -78,7 +78,7 @@ Local<Value> internalGetStackFrame(Handle<Value> handle) {
   i::Handle<i::Script> script(i::Script::cast(fun->shared()->script()));
   i::Address pc = gen->function()->code()->instruction_start();
   int script_line_offset = script->line_offset()->value();
-  int position = fun->code()->SourcePosition(pc + gen->continuation());
+  int position = fun->code()->SourcePosition(pc + (continuation >= 0 ? continuation : gen->continuation()));
   int line_number = GetScriptLineNumber(script, position);
   // line_number is already shifted by the script_line_offset.
   int relative_line_number = line_number - script_line_offset;
@@ -109,7 +109,41 @@ Local<Value> internalGetStackFrame(Handle<Value> handle) {
   return Utils::ToLocal(stack_frame); 
 }
 
+Local<Value> internalGetContinuation(Handle<Value> handle) {
+  i::Isolate* isolate = i::Isolate::Current();
+  ON_BAILOUT(isolate, "Galaxy_stack::GetContinuation()", return Local<v8::Value>());
+  ENTER_V8(isolate);
+  i::Handle<i::JSGeneratorObject> gen = Utils::OpenHandle(*handle);
+  return Number::New(gen->continuation()); 
+}
+
 Handle<Value> GetStackFrame(const Arguments& args) {
+  HandleScope scope;
+
+  int len = args.Length();
+  if (!(len == 1 || len == 2)) {
+    ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
+    return scope.Close(Undefined());
+  }
+
+  if (!args[0]->IsObject()) {
+    ThrowException(Exception::TypeError(String::New("Wrong argument type")));
+    return scope.Close(Undefined());
+  }
+  int continuation = -1;
+  if (len == 2) {
+    if (!args[1]->IsNumber()) {
+      ThrowException(Exception::TypeError(String::New("Wrong argument type")));
+      return scope.Close(Undefined());  
+    }
+    continuation = args[1]->NumberValue();
+  }
+  Local<Value> result = internalGetStackFrame(args[0], continuation);
+  return scope.Close(result);
+
+}
+
+Handle<Value> GetContinuation(const Arguments& args) {
   HandleScope scope;
 
   if (args.Length() != 1) {
@@ -121,13 +155,15 @@ Handle<Value> GetStackFrame(const Arguments& args) {
     ThrowException(Exception::TypeError(String::New("Wrong argument type")));
     return scope.Close(Undefined());
   }
-  Local<Value> result = internalGetStackFrame(args[0]);
+  Local<Value> result = internalGetContinuation(args[0]);
   return scope.Close(result);
 
 }
 
+
 void init(Handle<Object> exports) {
   exports->Set(String::NewSymbol("getStackFrame"), FunctionTemplate::New(GetStackFrame)->GetFunction());
+  exports->Set(String::NewSymbol("getContinuation"), FunctionTemplate::New(GetContinuation)->GetFunction());
 }
 
 NODE_MODULE(galaxy_stack, init)
