@@ -4,7 +4,7 @@ Stack frame API for harmony generators in node.js
 
 This package provides an API to obtain stack frame information from generators.
 
-It is an optional companion package to the [galaxy](/bjouhier/galaxy) package.
+It is an optional companion package to the [galaxy](https://github.com/bjouhier/galaxy) package.
 
 ## API
 
