@@ -8,7 +8,7 @@ It is an optional companion package to the [galaxy](https://github.com/bjouhier/
 
 ## API
 
-`var helper = require('galaxy-stack')
+`var helper = require('galaxy-stack')`
 
 * `cont = helper.getContinuation(gen)`  
   returns the continuation offset where execution will be resumed.  
