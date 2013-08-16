@@ -12,7 +12,7 @@
 #include <node.h>
 #include <v8.h>
 
-using namespace v8;
+
 
 // BEGIN CODE COPIED FROM api.cc
 #define ENTER_V8(isolate)                                          \
@@ -37,7 +37,7 @@ static void DefaultFatalErrorHandler(const char* location,
   }
 }
 
-static FatalErrorCallback GetFatalErrorHandler() {
+static v8::FatalErrorCallback GetFatalErrorHandler() {
   i::Isolate* isolate = i::Isolate::Current();
   if (isolate->exception_behavior() == NULL) {
     isolate->set_exception_behavior(DefaultFatalErrorHandler);
@@ -46,7 +46,7 @@ static FatalErrorCallback GetFatalErrorHandler() {
 }
 
 static bool ReportV8Dead(const char* location) {
-  FatalErrorCallback callback = GetFatalErrorHandler();
+  v8::FatalErrorCallback callback = GetFatalErrorHandler();
   callback(location, "V8 is no longer usable");
   return true;
 }
@@ -69,11 +69,11 @@ static inline bool IsExecutionTerminatingCheck(i::Isolate* isolate) {
 
 // Got this the API boilerplate from v8::Object::GetPrototype() 
 // and the details from Isolate::CaptureCurrentStackTrace
-Local<Value> internalGetStackFrame(Handle<Value> handle, int continuation) {
+v8::Local<v8::Value> internalGetStackFrame(v8::Handle<v8::Value> handle, int continuation) {
   i::Isolate* isolate = i::Isolate::Current();
-  ON_BAILOUT(isolate, "Galaxy_stack::GetStackFrame()", return Local<v8::Value>());
+  ON_BAILOUT(isolate, "Galaxy_stack::GetStackFrame()", return v8::Local<v8::Value>());
   ENTER_V8(isolate);
-  i::Handle<i::JSGeneratorObject> gen = Utils::OpenHandle(*handle);
+  i::Handle<i::JSGeneratorObject> gen = v8::Utils::OpenHandle(*handle);
   i::Handle<i::JSFunction> fun(gen->function(), isolate);
   i::Handle<i::Script> script(i::Script::cast(fun->shared()->script()));
   i::Address pc = gen->function()->code()->instruction_start();
@@ -106,64 +106,68 @@ Local<Value> internalGetStackFrame(Handle<Value> handle, int continuation) {
   i::JSObject::SetLocalPropertyIgnoreAttributes(stack_frame, line_key, i::Handle<i::Smi>(i::Smi::FromInt(line_number + 1), isolate), NONE); 
   i::JSObject::SetLocalPropertyIgnoreAttributes(stack_frame, column_key, i::Handle<i::Smi>(i::Smi::FromInt(column_offset + 1), isolate), NONE);
   i::JSObject::SetLocalPropertyIgnoreAttributes(stack_frame, function_key, fun_name, NONE);
-  return Utils::ToLocal(stack_frame); 
+  return v8::Utils::ToLocal(stack_frame); 
 }
 
-Local<Value> internalGetContinuation(Handle<Value> handle) {
+v8::Local<v8::Value> internalGetContinuation(v8::Handle<v8::Value> handle) {
   i::Isolate* isolate = i::Isolate::Current();
-  ON_BAILOUT(isolate, "Galaxy_stack::GetContinuation()", return Local<v8::Value>());
+  ON_BAILOUT(isolate, "Galaxy_stack::GetContinuation()", return v8::Local<v8::Value>());
   ENTER_V8(isolate);
-  i::Handle<i::JSGeneratorObject> gen = Utils::OpenHandle(*handle);
-  return Number::New(gen->continuation()); 
+  i::Handle<i::JSGeneratorObject> gen = v8::Utils::OpenHandle(*handle);
+  return v8::Number::New(gen->continuation()); 
 }
 
-Handle<Value> GetStackFrame(const Arguments& args) {
-  HandleScope scope;
+void GetStackFrame(const v8::FunctionCallbackInfo<v8::Value>& args) {
+  v8::HandleScope scope;
 
   int len = args.Length();
   if (!(len == 1 || len == 2)) {
-    ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-    return scope.Close(Undefined());
+    v8::ThrowException(v8::Exception::TypeError(v8::String::New("Wrong number of arguments")));
+    args.GetReturnValue().Set(scope.Close(v8::Undefined()));
+    return;
   }
 
   if (!args[0]->IsObject()) {
-    ThrowException(Exception::TypeError(String::New("Wrong argument type")));
-    return scope.Close(Undefined());
+    v8::ThrowException(v8::Exception::TypeError(v8::String::New("Wrong argument type")));
+    args.GetReturnValue().Set(scope.Close(v8::Undefined()));
+    return;
   }
   int continuation = -1;
   if (len == 2) {
     if (!args[1]->IsNumber()) {
-      ThrowException(Exception::TypeError(String::New("Wrong argument type")));
-      return scope.Close(Undefined());  
+      v8::ThrowException(v8::Exception::TypeError(v8::String::New("Wrong argument type")));
+      args.GetReturnValue().Set(scope.Close(v8::Undefined()));
+      return; 
     }
     continuation = args[1]->NumberValue();
   }
-  Local<Value> result = internalGetStackFrame(args[0], continuation);
-  return scope.Close(result);
-
+  v8::Local<v8::Value> result = internalGetStackFrame(args[0], continuation);
+  args.GetReturnValue().Set(scope.Close(result));
 }
 
-Handle<Value> GetContinuation(const Arguments& args) {
-  HandleScope scope;
+void GetContinuation(const v8::FunctionCallbackInfo<v8::Value>& args) {
+  v8::HandleScope scope;
 
   if (args.Length() != 1) {
-    ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-    return scope.Close(Undefined());
+    v8::ThrowException(v8::Exception::TypeError(v8::String::New("Wrong number of arguments")));
+    args.GetReturnValue().Set(scope.Close(v8::Undefined()));
+    return;
   }
 
   if (!args[0]->IsObject()) {
-    ThrowException(Exception::TypeError(String::New("Wrong argument type")));
-    return scope.Close(Undefined());
+    v8::ThrowException(v8::Exception::TypeError(v8::String::New("Wrong argument type")));
+    args.GetReturnValue().Set(scope.Close(v8::Undefined()));
+    return; 
   }
-  Local<Value> result = internalGetContinuation(args[0]);
-  return scope.Close(result);
+  v8::Local<v8::Value> result = internalGetContinuation(args[0]);
+  args.GetReturnValue().Set(scope.Close(result));
 
 }
 
 
-void init(Handle<Object> exports) {
-  exports->Set(String::NewSymbol("getStackFrame"), FunctionTemplate::New(GetStackFrame)->GetFunction());
-  exports->Set(String::NewSymbol("getContinuation"), FunctionTemplate::New(GetContinuation)->GetFunction());
+void init(v8::Handle<v8::Object> exports) {
+  NODE_SET_METHOD(exports, "getStackFrame", GetStackFrame);
+  NODE_SET_METHOD(exports, "getContinuation", GetContinuation);
 }
 
 NODE_MODULE(galaxy_stack, init)
