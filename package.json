@@ -1,6 +1,6 @@
 {
   "name": "galaxy-stack",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Stack-trace helper for galaxy module",
   "keywords": [
     "async",
