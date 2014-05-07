@@ -1,6 +1,6 @@
 {
   "name": "galaxy-stack",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Stack-trace helper for galaxy module",
   "keywords": [
     "async",
@@ -19,6 +19,13 @@
     "url": "https://github.com/bjouhier/galaxy-stack"
   },
   "engines": {
-    "node": ">=0.11.10"
+    "node": ">=0.11.13"
+  },
+  "scripts": {
+    "install": "node-gyp rebuild"
+  },
+  "gypfile": true,
+  "bugs": {
+    "url": "https://github.com/bjouhier/galaxy-stack/issues"
   }
 }

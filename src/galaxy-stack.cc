@@ -83,7 +83,7 @@ Local<Value> internalGetContinuation(Handle<Value> handle) {
   ON_BAILOUT(isolate, "Galaxy_stack::GetContinuation()", return Local<v8::Value>());
   ENTER_V8(isolate);
   i::Handle<i::JSGeneratorObject> gen = Utils::OpenHandle(*handle);
-  return Number::New(gen->continuation()); 
+  return Number::New(Isolate::GetCurrent(), gen->continuation()); 
 }
 
 void GetStackFrame(const v8::FunctionCallbackInfo<Value>& args) {
@@ -91,18 +91,18 @@ void GetStackFrame(const v8::FunctionCallbackInfo<Value>& args) {
 
   int len = args.Length();
   if (!(len == 1 || len == 2)) {
-    ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
+    Isolate::GetCurrent()->ThrowException(Exception::TypeError(String::NewFromUtf8(Isolate::GetCurrent(), "Wrong number of arguments")));
     return;
   }
 
   if (!args[0]->IsObject()) {
-    ThrowException(Exception::TypeError(String::New("Wrong argument type")));
+    Isolate::GetCurrent()->ThrowException(Exception::TypeError(String::NewFromUtf8(Isolate::GetCurrent(), "Wrong argument type")));
     return;
   }
   int continuation = -1;
   if (len == 2) {
     if (!args[1]->IsNumber()) {
-      ThrowException(Exception::TypeError(String::New("Wrong argument type")));
+      Isolate::GetCurrent()->ThrowException(Exception::TypeError(String::NewFromUtf8(Isolate::GetCurrent(), "Wrong argument type")));
       return;  
     }
     continuation = args[1]->NumberValue();
@@ -115,12 +115,12 @@ void GetContinuation(const v8::FunctionCallbackInfo<Value>& args) {
   HandleScope scope(v8::Isolate::GetCurrent());
 
   if (args.Length() != 1) {
-    ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
+    Isolate::GetCurrent()->ThrowException(Exception::TypeError(String::NewFromUtf8(Isolate::GetCurrent(), "Wrong number of arguments")));
     return;
   }
 
   if (!args[0]->IsObject()) {
-    ThrowException(Exception::TypeError(String::New("Wrong argument type")));
+    Isolate::GetCurrent()->ThrowException(Exception::TypeError(String::NewFromUtf8(Isolate::GetCurrent(), "Wrong argument type")));
     return;
   }
   Local<Value> result = internalGetContinuation(args[0]);
@@ -129,8 +129,9 @@ void GetContinuation(const v8::FunctionCallbackInfo<Value>& args) {
 
 
 void init(Handle<Object> exports) {
-  exports->Set(String::NewSymbol("getStackFrame"), FunctionTemplate::New(GetStackFrame)->GetFunction());
-  exports->Set(String::NewSymbol("getContinuation"), FunctionTemplate::New(GetContinuation)->GetFunction());
+  // note: first arg was symbol before!
+  exports->Set(String::NewFromUtf8(Isolate::GetCurrent(), "getStackFrame"), FunctionTemplate::New(Isolate::GetCurrent(), GetStackFrame)->GetFunction());
+  exports->Set(String::NewFromUtf8(Isolate::GetCurrent(), "getContinuation"), FunctionTemplate::New(Isolate::GetCurrent(), GetContinuation)->GetFunction());
 }
 
 NODE_MODULE(galaxy_stack, init)
