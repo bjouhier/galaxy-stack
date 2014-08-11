@@ -48,7 +48,7 @@ Local<Value> internalGetStackFrame(Handle<Value> handle, int continuation) {
   i::Address pc = gen->function()->code()->instruction_start();
   int script_line_offset = script->line_offset()->value();
   int position = fun->code()->SourcePosition(pc + (continuation >= 0 ? continuation : gen->continuation()));
-  int line_number = GetScriptLineNumber(script, position);
+  int line_number = i::Script::GetLineNumber(script, position);
   // line_number is already shifted by the script_line_offset.
   int relative_line_number = line_number - script_line_offset;
 
