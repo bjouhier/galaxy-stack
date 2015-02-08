@@ -6,9 +6,9 @@
 // Copyright 2012 the V8 project authors. All rights reserved.
 
 #define ENABLE_DEBUGGER_SUPPORT
-#include "api.h"
-#include "objects.h"
-#include "vm-state-inl.h"
+#include "src/api.h"
+#include "src/objects.h"
+#include "src/vm-state-inl.h"
 #include <node.h>
 #include <v8.h>
 
@@ -16,7 +16,7 @@ using namespace v8;
 
 // BEGIN CODE COPIED FROM api.cc
 #define ENTER_V8(isolate)                                          \
-  ASSERT((isolate)->IsInitialized());                              \
+  DCHECK((isolate)->IsInitialized());                              \
   i::VMState<i::OTHER> __state__((isolate))
 
 #define ON_BAILOUT(isolate, location, code)                        \
@@ -71,10 +71,10 @@ Local<Value> internalGetStackFrame(Handle<Value> handle, int continuation) {
   i::Handle<i::String> line_key = isolate->factory()->InternalizeOneByteString(STATIC_ASCII_VECTOR("lineNumber"));
   i::Handle<i::String> script_key = isolate->factory()->InternalizeOneByteString(STATIC_ASCII_VECTOR("scriptName"));  
   i::Handle<i::String> function_key = isolate->factory()->InternalizeOneByteString(STATIC_ASCII_VECTOR("functionName"));
-  i::JSObject::SetLocalPropertyIgnoreAttributes(stack_frame, script_key, script_name, NONE);
-  i::JSObject::SetLocalPropertyIgnoreAttributes(stack_frame, line_key, i::Handle<i::Smi>(i::Smi::FromInt(line_number + 1), isolate), NONE); 
-  i::JSObject::SetLocalPropertyIgnoreAttributes(stack_frame, column_key, i::Handle<i::Smi>(i::Smi::FromInt(column_offset + 1), isolate), NONE);
-  i::JSObject::SetLocalPropertyIgnoreAttributes(stack_frame, function_key, fun_name, NONE);
+  i::JSObject::SetOwnPropertyIgnoreAttributes(stack_frame, script_key, script_name, NONE);
+  i::JSObject::SetOwnPropertyIgnoreAttributes(stack_frame, line_key, i::Handle<i::Smi>(i::Smi::FromInt(line_number + 1), isolate), NONE); 
+  i::JSObject::SetOwnPropertyIgnoreAttributes(stack_frame, column_key, i::Handle<i::Smi>(i::Smi::FromInt(column_offset + 1), isolate), NONE);
+  i::JSObject::SetOwnPropertyIgnoreAttributes(stack_frame, function_key, fun_name, NONE);
   return Utils::ToLocal(stack_frame); 
 }
 
