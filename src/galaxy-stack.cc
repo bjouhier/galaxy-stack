@@ -15,9 +15,18 @@
 using namespace v8;
 
 // BEGIN CODE COPIED FROM api.cc
+
+#if NODE_MODULE_VERSION >= 42
+#define ENTER_V8(isolate)                                          \
+  i::VMState<OTHER> __state__((isolate))
+#define STATIC_ASCII_VECTOR(x)  (x)
+#define INTERNALIZE_STRING  InternalizeUtf8String
+#else
 #define ENTER_V8(isolate)                                          \
   DCHECK((isolate)->IsInitialized());                              \
   i::VMState<i::OTHER> __state__((isolate))
+#define INTERNALIZE_STRING  InternalizeOneByteString
+#endif
 
 #define ON_BAILOUT(isolate, location, code)                        \
   if (IsExecutionTerminatingCheck(isolate)) {                      \
@@ -26,7 +35,7 @@ using namespace v8;
   }
 
 static inline bool IsExecutionTerminatingCheck(i::Isolate* isolate) {
-  if (!isolate->IsInitialized()) return false;
+  //if (!isolate->IsInitialized()) return false;
   if (isolate->has_scheduled_exception()) {
     return isolate->scheduled_exception() ==
         isolate->heap()->termination_exception();
@@ -67,14 +76,14 @@ Local<Value> internalGetStackFrame(Handle<Value> handle, int continuation) {
   }
 
   i::Handle<i::JSObject> stack_frame = isolate->factory()->NewJSObject(isolate->object_function());
-  i::Handle<i::String> column_key = isolate->factory()->InternalizeOneByteString(STATIC_ASCII_VECTOR("column"));
-  i::Handle<i::String> line_key = isolate->factory()->InternalizeOneByteString(STATIC_ASCII_VECTOR("lineNumber"));
-  i::Handle<i::String> script_key = isolate->factory()->InternalizeOneByteString(STATIC_ASCII_VECTOR("scriptName"));  
-  i::Handle<i::String> function_key = isolate->factory()->InternalizeOneByteString(STATIC_ASCII_VECTOR("functionName"));
-  i::JSObject::SetOwnPropertyIgnoreAttributes(stack_frame, script_key, script_name, NONE);
-  i::JSObject::SetOwnPropertyIgnoreAttributes(stack_frame, line_key, i::Handle<i::Smi>(i::Smi::FromInt(line_number + 1), isolate), NONE); 
-  i::JSObject::SetOwnPropertyIgnoreAttributes(stack_frame, column_key, i::Handle<i::Smi>(i::Smi::FromInt(column_offset + 1), isolate), NONE);
-  i::JSObject::SetOwnPropertyIgnoreAttributes(stack_frame, function_key, fun_name, NONE);
+  i::Handle<i::String> column_key = isolate->factory()->INTERNALIZE_STRING(STATIC_ASCII_VECTOR("column"));
+  i::Handle<i::String> line_key = isolate->factory()->INTERNALIZE_STRING(STATIC_ASCII_VECTOR("lineNumber"));
+  i::Handle<i::String> script_key = isolate->factory()->INTERNALIZE_STRING(STATIC_ASCII_VECTOR("scriptName"));  
+  i::Handle<i::String> function_key = isolate->factory()->INTERNALIZE_STRING(STATIC_ASCII_VECTOR("functionName"));
+  (void)i::JSObject::SetOwnPropertyIgnoreAttributes(stack_frame, script_key, script_name, NONE);
+  (void)i::JSObject::SetOwnPropertyIgnoreAttributes(stack_frame, line_key, i::Handle<i::Smi>(i::Smi::FromInt(line_number + 1), isolate), NONE); 
+  (void)i::JSObject::SetOwnPropertyIgnoreAttributes(stack_frame, column_key, i::Handle<i::Smi>(i::Smi::FromInt(column_offset + 1), isolate), NONE);
+  (void)i::JSObject::SetOwnPropertyIgnoreAttributes(stack_frame, function_key, fun_name, NONE);
   return Utils::ToLocal(stack_frame); 
 }
 
