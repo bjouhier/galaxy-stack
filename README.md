@@ -1,5 +1,9 @@
 Stack frame API for harmony generators in node.js
 
+** Project has been abandoned **
+
+Too difficult to maintain as it needs access to V8's internals. I managed to make it work with node 0.1x and io.js 2.x but did not maintain it any further.
+
 ## Intro
 
 This package provides an API to obtain stack frame information from generators.
