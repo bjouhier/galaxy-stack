@@ -1,6 +1,6 @@
-Stack frame API for harmony generators in node.js
+# Stack frame API for harmony generators in node.js
 
-__Project has been abandoned__
+__Warning: Project has been abandoned__
 
 Too difficult to maintain as it needs access to V8's internals. I managed to make it work with node 0.1x and io.js 2.x but did not maintain it any further.
 
